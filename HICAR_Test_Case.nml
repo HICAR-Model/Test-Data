@@ -67,7 +67,7 @@
     !   primary inputs from this file are lat, lon, and terrain, optionally soil and veg types
     init_conditions_file="../domains/Gaudergrat_250m.nc", !"/scratch/snx3000/dreynold/Domains/Davos_XL_250m_ridge.nc", !"geo_em.d01_250m.nc"
 
-    forcing_file_list = "file_list_Gaud_250m.txt"  
+    forcing_file_list = "file_list_TestCase.txt"  
 /
 
 !---------------------------------------------------------
@@ -236,8 +236,6 @@
     Ef_sw_l = .False.   ! True sets ef_rw = 1, insted of max 0.95
 
     top_mp_level = 0    ! if <=0 stop that many levels below the model top
-    local_precip_fraction = 1.0 ! Fraction of micrphysics derived precipitation to deposit in the local grid cell
-                                ! the remaining precip is distributed to the surrounding grid cells.
 /
 
 !---------------------------------------------------------
