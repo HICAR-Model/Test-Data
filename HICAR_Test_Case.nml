@@ -17,7 +17,13 @@
     pbl = 3,  ! 1=legacy (deprecated)      2=Simple (Local HP96)        3=YSU                        4=COSMO diagnostic PBL  
 
     ! Land Surface Model
-    lsm = 3,   ! 1=use prescribed fluxes    2=Simple LSM (N/A)          3=Noah LSM                   4=NoahMP
+    lsm = 4,   ! 1=use prescribed fluxes    2=Simple LSM (N/A)          3=Noah LSM                   4=NoahMP
+
+    ! Snow Model
+    sm = 0,    ! 1=FSM2
+
+    ! Surface layer scheme
+    sfc = 1,   ! 1=Revised MM5
 
     ! Open water fluxes
     water=2,  ! 1=use prescribed (w/lsm=1) 2=Simple sea surface fluxes
@@ -35,7 +41,7 @@
     adv = 1,  ! 1=Standard                 2=MPDATA                     3=Adams-Bashforth (wishlist)
 
     ! Wind field calculations
-    wind = 3    ! 1=Linear Theory          2=Grid-deformed winds        3=O'Brien iterative winds    4=PETSc solver
+    wind = 3    ! 1=Linear Theory          2=Grid-deformed winds        4=PETSc solver
 
     ! radiation down scaling only works wtih  rad>1
     radiation_downScaling = 1    !    
@@ -77,7 +83,7 @@
     !   Set this to the starting date of the first low-resolution forcing file
     forcing_start_date =  '2017-02-14 00:00:00',
     !   Set this to the date to stop running the model
-    end_date =  "2017-02-14 02:00:00",
+    end_date =  "2017-02-14 00:05:00",
 
     !   Calendar used by the forcing data "gregorian", "standard", "noleap", "365-day", "360-day"
     calendar = "standard" , !"gregorian",
@@ -144,7 +150,7 @@
 !   I/O Options
 !---------------------------------------------------------
 &io_list
-    names = 'qs','snow_height','ns','qg','ng','temperature','albedo','qi','ni','snowfall','ice1_a','lat','swtb','swtd','hfls','hfss','lwtr','lon','pressure','u','v','w_grid','w','z','terrain','dz_i','precipitation','qv','surface_roughness','u10m','v10m','hus2m','ta2m','psfc','qc','qr','nr'
+    names = 'qs','snow_height','ns','qg','ng','temperature','albedo','qi','ni','snowfall','ice1_a','lat','swtb','swtd','hfls','hfss','lwtr','lon','pressure','u','v','w','z','terrain','dz_i','precipitation','qv','surface_roughness','u10m','v10m','hus2m','ta2m','psfc','qc','qr','nr'
 
     output_file="../output/TestCase/hicar_out_",
     restart_out_file = "../restart/TestCase/hicar_rst_"
