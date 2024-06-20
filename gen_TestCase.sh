@@ -14,7 +14,7 @@ sed -i "s/start_date = ''/start_date = '2017-02-14 00:00:00'/g" $out_file
 sed -i "s/end_date = ''/end_date = '2017-02-14 00:05:00'/g" $out_file
 sed -i 's/dx = 0.0/dx = 250.0/g' $out_file
 sed -i 's/nz = 500/nz = 40/g' $out_file
-sed -i 's/pbl = 0/pbl = 3/g' $out_file
+sed -i 's/pbl = 0/pbl = 1/g' $out_file
 sed -i 's/lsm = 0/lsm = 3/g' $out_file
 sed -i 's/sfc = 0/sfc = 1/g' $out_file
 sed -i 's/water = 0/water = 1/g' $out_file
