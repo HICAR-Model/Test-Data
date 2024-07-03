@@ -14,14 +14,14 @@ sed -i "s/start_date = ''/start_date = '2017-02-14 00:00:00'/g" $out_file
 sed -i "s/end_date = ''/end_date = '2017-02-14 00:05:00'/g" $out_file
 sed -i 's/dx = 0.0/dx = 250.0/g' $out_file
 sed -i 's/nz = 500/nz = 40/g' $out_file
-sed -i 's/pbl = 0/pbl = 1/g' $out_file
-sed -i 's/lsm = 0/lsm = 3/g' $out_file
-sed -i 's/sfc = 0/sfc = 1/g' $out_file
-sed -i 's/water = 0/water = 1/g' $out_file
-sed -i 's/mp = 0/mp = 3/g' $out_file
-sed -i 's/rad = 0/rad = 3/g' $out_file
-sed -i 's/adv = 0/adv = 1/g' $out_file
-sed -i 's/wind = 0/wind = 3/g' $out_file
+sed -i 's/ pbl = 0/ pbl = 1/g' $out_file
+sed -i 's/ lsm = 0/ lsm = 3/g' $out_file
+sed -i 's/ sfc = 0/ sfc = 1/g' $out_file
+sed -i 's/ water = 0/ water = 1/g' $out_file
+sed -i 's/ mp = 0/ mp = 3/g' $out_file
+sed -i 's/ rad = 0/ rad = 3/g' $out_file
+sed -i 's/ adv = 0/ adv = 1/g' $out_file
+sed -i 's/ wind = 0/ wind = 3/g' $out_file
 sed -i 's/radiation_downscaling = 0/radiation_downscaling = 1/g' $out_file
 sed -i 's/Sx = .False./Sx = .True./g' $out_file
 sed -i "s/output_vars = ''/output_vars = 'qs','snow_height','ns','qg','ng','temperature','albedo','qi','ni','snowfall','ice1_a','lat','swtb','swtd','hfls','hfss','lwtr','lon','pressure','u'/g" $out_file
