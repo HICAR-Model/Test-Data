@@ -4,10 +4,10 @@
 #./gen_TestCase.sh "../../HICAR/run/default_hicar_options.nml" HICAR_TestCase.nml
 
 default_file=$(readlink -f $1)
-out_file=$(readlink -f $2)
+out_file=$2 #$(readlink -f $2)
 
 # copy default
-cp $default_file $2
+cp $default_file $out_file
 
 #replace necesarry namelist options
 sed -i'.bak' "s/start_date = ''/start_date = '2017-02-14 00:00:00'/g" $out_file
