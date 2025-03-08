@@ -52,6 +52,7 @@ sed -i'.bak' 's/smooth_wind_distance = -9999/smooth_wind_distance = 500.0/g' $ou
 sed -i'.bak' "s/init_conditions_file = ''/init_conditions_file = '..\/domains\/Gaudergrat_250m.nc'/g" $out_file
 sed -i'.bak' "s/forcing_file_list = ''/forcing_file_list = 'file_list_TestCase.txt'/g" $out_file
 sed -i'.bak' 's/qv_is_spec_humidity = .False./qv_is_spec_humidity = .True./g' $out_file
+sed -i'.bak' 's/t_is_potential = .True./t_is_potential = .False./g' $out_file
 sed -i'.bak' 's/tzone = 0.0/tzone = 1.0/g' $out_file
 sed -i'.bak' 's/update_interval_rrtmg = 600/update_interval_rrtmg = 600/g' $out_file
 sed -i'.bak' 's/qv_is_spec_humidity = .True./qv_is_spec_humidity = .True./g' $out_file
