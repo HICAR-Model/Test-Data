@@ -271,13 +271,27 @@ for nml_file in *.nml; do
 
 					# move one layer up to the root directory with the python script
 					cd ..
+					#get the path to the python executable
+					python_exe=$(which python)
 					# check if python has xarray, numpy, and netcdf4 installed
-					if ! python3 -c "import xarray, numpy, netCDF4" &> /dev/null; then
-						echo -e "${RED}Python packages xarray, numpy, and netCDF4 are not installed.${NC}"
-						echo -e "${RED}Please install them to check the output.${NC}"
-						exit 1
+					if ! $python_exe -c "import xarray, numpy, netCDF4, dask" &> /dev/null; then
+						PY_ENV_PATH=$(pwd)/venv
+						echo
+						echo -e "Python packages xarray, numpy, netCDF4, and dask are not installed"
+						echo -e "Creating a virtual environment and installing them to:"
+						echo -e "    ${BLUE}${PY_ENV_PATH}${NC}"
+						echo "-------------------------------------------------------"
+						mkdir -p $PY_ENV_PATH
+						$python_exe -m venv ${PY_ENV_PATH}
+						${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray dask
+						export PATH=${PY_ENV_PATH}/bin:$ENV{PATH} 
+	                    export PYTHONPATH=${PY_ENV_PATH}:$ENV{PYTHONPATH} 
+						# Get the path to the python executable in the virtual environment
+						python_exe=${PY_ENV_PATH}/bin/python
+						echo "-------------------------------------------------------"
+						echo
 					fi
-					python3 check_output.py $base_name_no_ext
+					$python_exe check_output.py $base_name_no_ext
 					check_result=$?
 
 					cd input

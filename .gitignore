@@ -6,3 +6,4 @@ input/*_support
 input/*file*.txt
 output/*/*.nc
 restart/*
+venv/*
