@@ -54,7 +54,7 @@ fi
 
 #First, make forcing file list
 if [ ! -f ./input/file_list_TestCase.txt ]; then
-	./$1/helpers/filelist_script.sh "forcing/*" input/file_list_TestCase.txt
+	/$1/helpers/filelist_script.sh "forcing/*" input/file_list_TestCase.txt
 fi
 
 #Now copy the necesarry supporting files to the input directory
