@@ -1,1 +1,8 @@
 *.nml
+*.out
+*.err
+input/*_support
+*.TBL
+input/*file*.txt
+output/*/*.nc
+restart/*
