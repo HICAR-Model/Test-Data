@@ -14,8 +14,8 @@ class bcolors:
 def calculate_percent_diff(var1, var2):
     """Calculate the absolute percent difference between two arrays."""
     # Avoid division by zero by adding a small value where var2 is zero
-    denominator = np.where(np.abs(var2) > 1e-10, var2, 1e-10)
-    percent_diff = np.abs((var1 - var2) / denominator) * 100.0
+    percent_diff = np.where(np.abs(var2) > 1e-10, np.abs((var1 - var2) / var2) * 100.0, 0.0)
+    # percent_diff = np.abs((var1 - var2) / denominator) * 100.0
     return percent_diff
 
 def main():
