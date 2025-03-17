@@ -17,6 +17,8 @@ def calculate_percent_diff(var1, var2):
     var1_sum = np.sum(var1)
     var2_sum = np.sum(var2)
     # denominator = np.where(np.abs(var2_sum) > 1e-10, var2, 1e-10)
+    if var2_sum <= 1e-10:
+        var2_sum = 1e-10  # Avoid division by zero
     percent_diff = np.abs((var1_sum - var2_sum) / var2_sum) * 100.0
     return percent_diff
 
