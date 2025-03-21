@@ -123,9 +123,11 @@ for script in nml_gen_scripts/*.sh; do
 			# Run the script, passing the file just created to be used as a template
 			./$script $out_file
 
+                        base_name_no_ext_no_rst="${base_name%_restart}"
+
 			# make the output and restart folders which will be needed by the run
-			mkdir -p ../output/$base_name_no_ext
-			mkdir -p ../restart/$base_name_no_ext
+			mkdir -p ../output/$base_name_no_ext_no_rst
+			mkdir -p ../restart/$base_name_no_ext_no_rst
 		fi
 	fi
 done

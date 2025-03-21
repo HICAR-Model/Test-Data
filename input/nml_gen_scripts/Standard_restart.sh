@@ -1,15 +1,15 @@
 #replace necesarry namelist options
 out_file=$1
 
+sed -i'.bak' "s/restart_date = ''/restart_date = '2017-02-14 00:10:00'/g" $out_file
 sed -i'.bak' "s/start_date = ''/start_date = '2017-02-14 00:00:00'/g" $out_file
-sed -i'.bak' "s/end_date = ''/end_date = '2017-02-14 00:30:00'/g" $out_file
+sed -i'.bak' "s/end_date = ''/end_date = '2017-02-14 00:20:00'/g" $out_file
 sed -i'.bak' "s/restartinterval = 24/restartinterval = 1/g" $out_file
 sed -i'.bak' "s/outputinterval = 3600/outputinterval = 600/g" $out_file
-sed -i'.bak' "s/output_folder = '..\/output\/'/output_folder = '..\/output\/Nested\/'/g" $out_file
-sed -i'.bak' "s/restart_folder = '..\/restart\/'/restart_folder = '..\/restart\/Nested\/'/g" $out_file
-sed -i'.bak' "s/nests = 1/nests = 2/g" $out_file
-sed -i'.bak' "s/parent_nest = 0/parent_nest = 0,1/g" $out_file
-sed -i'.bak' 's/dx = 0.0/dx = 250.0, 150.0/g' $out_file
+sed -i'.bak' "s/output_folder = '..\/output\/'/output_folder = '..\/output\/Standard\/'/g" $out_file
+sed -i'.bak' "s/restart_folder = '..\/restart\/'/restart_folder = '..\/restart\/Standard\/'/g" $out_file
+sed -i'.bak' "s/restart_run = .False./restart_run = .True./g" $out_file
+sed -i'.bak' 's/dx = 0.0/dx = 250.0/g' $out_file
 sed -i'.bak' 's/nz = 500/nz = 40/g' $out_file
 sed -i'.bak' 's/ pbl = 0/ pbl = 1/g' $out_file
 sed -i'.bak' 's/ lsm = 0/ lsm = 3/g' $out_file
@@ -45,7 +45,7 @@ sed -i'.bak' "s/ slope_var = ''/ slope_var = 'slope'/g" $out_file
 sed -i'.bak' "s/ slope_angle_var = ''/ slope_angle_var = 'slope_rad'/g" $out_file
 sed -i'.bak' "s/ aspect_angle_var = ''/ aspect_angle_var = 'aspect_rad'/g" $out_file
 sed -i'.bak' 's/smooth_wind_distance = -9999/smooth_wind_distance = 500.0/g' $out_file
-sed -i'.bak' "s/init_conditions_file = ''/init_conditions_file = '..\/domains\/Gaudergrat_250m.nc','..\/domains\/Gaudergrat_nested_250m.nc'/g" $out_file
+sed -i'.bak' "s/init_conditions_file = ''/init_conditions_file = '..\/domains\/Gaudergrat_250m.nc'/g" $out_file
 sed -i'.bak' "s/forcing_file_list = ''/forcing_file_list = 'file_list_TestCase.txt'/g" $out_file
 sed -i'.bak' 's/qv_is_spec_humidity = .False./qv_is_spec_humidity = .True./g' $out_file
 sed -i'.bak' 's/t_is_potential = .True./t_is_potential = .False./g' $out_file
