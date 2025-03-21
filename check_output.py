@@ -13,13 +13,13 @@ class bcolors:
     
 def calculate_percent_diff(var1, var2):
     """Calculate the absolute percent difference between two arrays."""
-    # Avoid division by zero by adding a small value where var2 is zero
-    var1_sum = np.sum(var1)
-    var2_sum = np.sum(var2)
-    # denominator = np.where(np.abs(var2_sum) > 1e-10, var2, 1e-10)
-    if var2_sum <= 1e-10:
-        var2_sum = 1e-10  # Avoid division by zero
-    percent_diff = np.abs((var1_sum - var2_sum) / var2_sum) * 100.0
+    # Avoid division by zero by adding a small value where zero
+    var2_no_zero = np.where(var2 > 1e-6, var2, 1e-6)
+    var2_no_zero = np.where(var2_no_zero < -1e-6, var2_no_zero, -1e-6)
+    var1_no_zero = np.where(var1 > 1e-6, var1, 1e-6)
+    var1_no_zero = np.where(var1_no_zero < -1e-6, var1_no_zero, -1e-6)
+
+    percent_diff = np.abs((var1_no_zero - var2_no_zero) / var2_no_zero) * 100.0
     return percent_diff
 
 def main():
@@ -31,9 +31,14 @@ def main():
     base_name = sys.argv[1]
 
     # Define file paths
-    output_file = "output/"+base_name+"/Gaudergrat_250m*.nc"
     reference_file = "output/"+base_name+".nc"
-    
+    output_file = "output/"+base_name+"/Gaudergrat_250m*.nc"
+
+    # if the pattern "_restart" appears in base_name, remove it from paths
+    if "_restart" in base_name:
+        reference_file = reference_file.replace("_restart", "")
+        output_file = output_file.replace("_restart", "")
+
     # Check if files exist
     output_matches = glob.glob(output_file)
     if not output_matches:

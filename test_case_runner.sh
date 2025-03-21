@@ -123,7 +123,7 @@ for script in nml_gen_scripts/*.sh; do
 			# Run the script, passing the file just created to be used as a template
 			./$script $out_file
 
-                        base_name_no_ext_no_rst="${base_name%_restart}"
+            base_name_no_ext_no_rst="${base_name_no_ext%_restart}"
 
 			# make the output and restart folders which will be needed by the run
 			mkdir -p ../output/$base_name_no_ext_no_rst
@@ -275,6 +275,15 @@ for nml_file in *.nml; do
 					cd ..
 					#get the path to the python executable
 					python_exe=$(which python)
+					# check if python is installed
+					if [ -z "$python_exe" ]; then
+						#try python3
+						python_exe=$(which python3)
+						if [ -z "$python_exe" ]; then
+							echo -e "${RED}Python is not installed, but a check is requested for test: ${BLUE}$base_name_no_ext${NC}{RED}. Please install Python.${NC}"
+							exit 1
+						fi
+					fi
 					# check if python has xarray, numpy, and netcdf4 installed
 					if ! $python_exe -c "import xarray, numpy, netCDF4, dask" &> /dev/null; then
 						PY_ENV_PATH=$(pwd)/venv
@@ -286,14 +295,17 @@ for nml_file in *.nml; do
 						mkdir -p $PY_ENV_PATH
 						$python_exe -m venv ${PY_ENV_PATH}
 						${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray dask
-						export PATH=${PY_ENV_PATH}/bin:$ENV{PATH} 
 	                    export PYTHONPATH=${PY_ENV_PATH}:$ENV{PYTHONPATH} 
 						# Get the path to the python executable in the virtual environment
 						python_exe=${PY_ENV_PATH}/bin/python
 						echo "-------------------------------------------------------"
 						echo
 					fi
+					PATH_tmp=${PATH}
+					export PATH=${PY_ENV_PATH}/bin:$ENV{PATH} 
 					$python_exe check_output.py $base_name_no_ext
+					export PATH=$PATH_tmp
+
 					check_result=$?
 
 					cd input
