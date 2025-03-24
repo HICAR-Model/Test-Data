@@ -22,7 +22,7 @@ sed -i'.bak' 's/ wind = 0/ wind = 3/g' $out_file
 sed -i'.bak' 's/radiation_downscaling = 0/radiation_downscaling = 1/g' $out_file
 sed -i'.bak' 's/Sx = .False./Sx = .True./g' $out_file
 sed -i'.bak' "s/output_vars = ''/output_vars = 'qv','temperature','precipitation','lat','lon','swtb','swtd','hfls','hfss','lwtr','pressure','u','v','w'/g" $out_file
-sed -i'.bak' 's/inputinterval = 3600/inputinterval = 7200/g' $out_file
+sed -i'.bak' 's/inputinterval = 3600/inputinterval = 3600/g' $out_file
 sed -i'.bak' "s/LU_Categories = 'MODIFIED_IGBP_MODIS_NOAH'/LU_Categories = 'USGS'/g" $out_file
 sed -i'.bak' "s/ time_var = ''/ time_var = 'time'/g" $out_file
 sed -i'.bak' "s/ pvar = ''/ pvar = 'P'/g" $out_file
