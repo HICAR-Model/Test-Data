@@ -125,6 +125,16 @@ for script in nml_gen_scripts/*.sh; do
 
             base_name_no_ext_no_rst="${base_name_no_ext%_restart}"
 
+			# Check if the output and restart folders already exist, in which case delete them
+			# This ensures that no old output or restart files are used
+			if [ -d ../output/$base_name_no_ext_no_rst ]; then
+				echo -e "${RED}Output folder already exists. Deleting it.${NC}"
+				rm -rf ../output/$base_name_no_ext_no_rst
+			fi
+			if [ -d ../restart/$base_name_no_ext_no_rst ]; then
+				echo -e "${RED}Restart folder already exists. Deleting it.${NC}"
+				rm -rf ../restart/$base_name_no_ext_no_rst
+			fi
 			# make the output and restart folders which will be needed by the run
 			mkdir -p ../output/$base_name_no_ext_no_rst
 			mkdir -p ../restart/$base_name_no_ext_no_rst
@@ -222,6 +232,8 @@ for nml_file in *.nml; do
 							# but not producing output. This is likely a hang
 							echo
 							echo -e "${RED}HICAR is still running, but has not written to stdout in the last minute. This may indicate a hang.${NC}"
+							# kill the process
+							kill -9 $hicar_pid
 							exit 1
 						fi
 					fi
