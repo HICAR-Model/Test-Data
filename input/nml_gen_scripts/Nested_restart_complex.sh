@@ -1,12 +1,14 @@
 #replace necesarry namelist options
 out_file=$1
 
+sed -i'.bak' "s/restart_date = ''/restart_date = '2017-02-14 00:50:00'/g" $out_file
 sed -i'.bak' "s/start_date = ''/start_date = '2017-02-14 00:00:00','2017-02-14 01:00:00'/g" $out_file
 sed -i'.bak' "s/end_date = ''/end_date = '2017-02-14 01:20:00'/g" $out_file
 sed -i'.bak' "s/restartinterval = 24/restartinterval = 1/g" $out_file
 sed -i'.bak' "s/outputinterval = 3600/outputinterval = 600/g" $out_file
 sed -i'.bak' "s/output_folder = '..\/output\/'/output_folder = '..\/output\/Nested\/'/g" $out_file
 sed -i'.bak' "s/restart_folder = '..\/restart\/'/restart_folder = '..\/restart\/Nested\/'/g" $out_file
+sed -i'.bak' "s/restart_run = .False./restart_run = .True./g" $out_file
 sed -i'.bak' "s/nests = 1/nests = 2/g" $out_file
 sed -i'.bak' "s/parent_nest = 0/parent_nest = 0,1/g" $out_file
 sed -i'.bak' 's/dx = 0.0/dx = 250.0, 150.0/g' $out_file
