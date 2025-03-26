@@ -12,13 +12,17 @@ class bcolors:
     NC='\033[0m' # No Color
     
 def calculate_percent_diff(var1, var2):
+
+    threshold = 1e-6
     """Calculate the absolute percent difference between two arrays."""
     # Avoid division by zero by adding a small value where zero
-    var2_no_zero = np.where(var2 > 1e-6, var2, 1e-6)
-    var2_no_zero = np.where(var2_no_zero < -1e-6, var2_no_zero, -1e-6)
-    var1_no_zero = np.where(var1 > 1e-6, var1, 1e-6)
-    var1_no_zero = np.where(var1_no_zero < -1e-6, var1_no_zero, -1e-6)
+    var1_no_zero = np.where((var1 > threshold) | (var1 < 0), var1, threshold)
+    var1_no_zero = np.where((var1_no_zero < -threshold) | (var1_no_zero > 0), var1_no_zero, -threshold)
+    var2_no_zero = np.where((var2 > threshold) | (var2 < 0), var2, threshold)
+    var2_no_zero = np.where((var2_no_zero < -threshold) | (var2_no_zero > 0), var2_no_zero, -threshold)
 
+    # var1_no_zero = np.mean(var1_no_zero)
+    # var2_no_zero = np.mean(var2_no_zero)
     percent_diff = np.abs((var1_no_zero - var2_no_zero) / var2_no_zero) * 100.0
     return percent_diff
 
