@@ -11,19 +11,33 @@ class bcolors:
     RED='\033[0;31m'
     NC='\033[0m' # No Color
     
-def calculate_percent_diff(var1, var2):
+def calculate_percent_diff(var1, var_ref):
 
+    # threshold = np.mean(np.abs(var_ref))*1e-4
     threshold = 1e-6
     """Calculate the absolute percent difference between two arrays."""
     # Avoid division by zero by adding a small value where zero
     var1_no_zero = np.where((var1 > threshold) | (var1 < 0), var1, threshold)
-    var1_no_zero = np.where((var1_no_zero < -threshold) | (var1_no_zero > 0), var1_no_zero, -threshold)
-    var2_no_zero = np.where((var2 > threshold) | (var2 < 0), var2, threshold)
-    var2_no_zero = np.where((var2_no_zero < -threshold) | (var2_no_zero > 0), var2_no_zero, -threshold)
+    var1_no_zero = np.where((var1 < -threshold) | (var1 > 0), var1_no_zero, -threshold)
+    # var_ref_no_zero = np.where((var1 > threshold) | (var1 < 0), var_ref, threshold)
+    # var_ref_no_zero = np.where((var1 < -threshold) | (var1 > 0), var_ref_no_zero, -threshold)
 
     # var1_no_zero = np.mean(var1_no_zero)
-    # var2_no_zero = np.mean(var2_no_zero)
-    percent_diff = np.abs((var1_no_zero - var2_no_zero) / var2_no_zero) * 100.0
+    # var_ref_no_zero = np.mean(var_ref_no_zero)
+    percent_diff = np.abs((var1 - var_ref) / var1_no_zero) * 100.0
+
+    # get mean of var1, excluding zero values
+    var1_sum = np.sum(np.abs(var1))
+    var1_count = np.count_nonzero(var1)
+    if var1_count > 0:
+        var1_mean = var1_sum / var1_count
+    else:
+        var1_mean = 0.0
+
+    # mask regions where the difference is less than 1% of the mean
+    percent_diff = np.where(np.abs(var1-var_ref) > 0.01*var1_mean, percent_diff, 0.0)
+
+    # percent_diff = np.abs(var1-var_ref)*100
     return percent_diff
 
 def main():
@@ -36,7 +50,7 @@ def main():
 
     # Define file paths
     reference_file = "output/"+base_name+".nc"
-    output_file = "output/"+base_name+"/Gaudergrat_250m*.nc"
+    output_file = "output/"+base_name+"/Gaudergrat_250m*00.nc"
 
     # if the pattern "_restart" appears in base_name, remove it from paths
     if "_restart" in base_name:
@@ -79,8 +93,8 @@ def main():
                 error_flag = True
                 continue
             
-            var_output = ds_output[var_name].values
-            var_reference = ds_reference[var_name].values
+            var_output = ds_output[var_name].values[:-1,...]
+            var_reference = ds_reference[var_name].values[:-1,...]
             
             # Calculate percent difference
             percent_diff = calculate_percent_diff(var_output, var_reference)
