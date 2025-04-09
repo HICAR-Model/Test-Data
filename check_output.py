@@ -93,9 +93,9 @@ def main():
                 error_flag = True
                 continue
             
-            var_output = ds_output[var_name].values[:-1,...]
             var_reference = ds_reference[var_name].values[:-1,...]
-            
+            var_output = ds_output[var_name].values[:var_reference.shape[0],...]
+
             # Calculate percent difference
             percent_diff = calculate_percent_diff(var_output, var_reference)
             max_diff = np.max(percent_diff)
@@ -106,6 +106,48 @@ def main():
             # Check if difference exceeds threshold
             if max_diff > threshold:
                 print(f"  {bcolors.RED}ERROR: {var_name} exceeds the {threshold}% threshold{bcolors.NC}")
+
+                # For offending fields, add to a collection to be saved later
+                # Create the output directory if it doesn't exist
+                os.makedirs(f"output/{base_name}", exist_ok=True)
+                
+                # Initialize the diff dataset if it's the first offending variable
+                if not hasattr(main, 'ds_diff'):
+                    main.ds_diff = xr.Dataset(coords={
+                        "time": ds_reference.time[:-1],
+                        "level": ds_reference.level if "level" in ds_reference.dims else None,
+                        "lat": ds_reference.lat,
+                        "lon": ds_reference.lon
+                    })
+                # Add this variable's diff to the dataset
+                if len(percent_diff.shape) == 3:
+                    main.ds_diff[f"{var_name}_diff"] = xr.DataArray(
+                        percent_diff, 
+                        dims=["time", "lat", "lon"]
+                    )
+                elif len(percent_diff.shape) == 4:
+                    if (percent_diff.shape[2] == ds_reference.sizes['lat_v']):
+                        main.ds_diff[f"{var_name}_diff"] = xr.DataArray(
+                            percent_diff, 
+                            dims=["time", "level", "lat_v", "lon"]
+                        )
+
+                    elif (percent_diff.shape[3] == ds_reference.sizes['lon_u']):
+                        print(f"MAKING U")
+                        main.ds_diff[f"{var_name}_diff"] = xr.DataArray(
+                            percent_diff, 
+                            dims=["time", "level", "lat", "lon_u"]
+                        )
+                    else:
+                        main.ds_diff[f"{var_name}_diff"] = xr.DataArray(
+                            percent_diff, 
+                            dims=["time", "level", "lat", "lon"]
+                        )
+                
+                # Write the dataset to file after adding each variable
+                output_diff_file = f"output/{base_name}/differences.nc"
+                main.ds_diff.to_netcdf(output_diff_file, mode='w')
+
                 error_flag = True
                 
         except Exception as e:
