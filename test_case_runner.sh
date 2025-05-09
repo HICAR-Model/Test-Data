@@ -172,8 +172,29 @@ for dir in "${PATH_DIRS[@]}"; do
 done
 
 if [ -z "$mpiexec_path" ]; then
-	echo -e "${RED}mpiexec not found. Please install mpiexec.${NC}"
-	exit 1
+	#check if srun is available
+	if command -v srun &> /dev/null; then
+		echo -e "${GREEN}Using srun to run HICAR${NC}"
+		# Get any srun flags passed to the script
+		SRUN_FLAGS=""
+		for arg in "$@"; do
+			if [[ "$arg" == -SRUN_FLAGS=* ]]; then
+				# Extract everything after -SRUN_FLAGS=
+				SRUN_FLAGS="${arg#-SRUN_FLAGS=}"
+				# Remove surrounding quotes if present
+				SRUN_FLAGS="${SRUN_FLAGS#\'}"
+				SRUN_FLAGS="${SRUN_FLAGS%\'}"
+				break
+			fi
+		done
+
+	else
+		echo -e "${RED}mpiexec not found. Please install mpiexec.${NC}"
+		echo -e "${RED}If you are using a cluster with SLURM, pass your${NC}"
+		echo -e "${RED}srun flags to the script.${NC}"
+		echo -e "${RED}Example: ./test_case_runner.sh -SRUN_FLAGS='-A s4920'${NC}"
+		exit 1
+	fi
 else
 	echo -e "${GREEN}Using mpiexec from: $mpiexec_path${NC}"
 fi
@@ -212,9 +233,24 @@ for nml_file in *.nml; do
 				echo -e "Output will be written to ${BLUE}$base_name_no_ext.out${NC} and ${BLUE}$base_name_no_ext.err${NC}"
 
 
-				# Start HICAR with output redirected to files
-				$mpiexec_path -np $np $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
-				hicar_pid=$!
+				# check if $mpiexec_path is set
+				if [ ! -z "$mpiexec_path" ]; then
+					echo -e "${GREEN}Using mpiexec to run HICAR${NC}"
+					# Start HICAR with output redirected to files
+					$mpiexec_path -np $np $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+					hicar_pid=$!
+
+				else
+					# Check if srun is available
+					if command -v srun &> /dev/null; then
+						echo -e "${GREEN}Using srun to run HICAR${NC}"
+						srun $SRUN_FLAGS $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+						hicar_pid=$!
+					else
+						echo -e "${RED}srun not found.${NC}"
+						exit 1
+					fi
+				fi
 				
 				echo
 				echo -n "Initializing..."
