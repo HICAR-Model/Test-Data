@@ -261,7 +261,7 @@ for nml_file in *.nml; do
 				total_last_lines=0
 				while kill -0 $hicar_pid 2>/dev/null; do
 					sleep 1
-					if [ ! -z "$mpiexec_path"] && [$wait_counter -gt 60 ]; then
+					if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 60 ]; then
 						# Check if the process is still running
 						if kill -0 $hicar_pid 2>/dev/null; then
 							# inform the user that the process is still running,
