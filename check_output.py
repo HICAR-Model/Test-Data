@@ -50,7 +50,7 @@ def main():
 
     # Define file paths
     reference_file = "output/"+base_name+".nc"
-    output_file = "output/"+base_name+"/Gaudergrat_250m*00.nc"
+    output_file = "output/"+base_name+"/Gaudergrat_250m_2017-02-14_00-00-00.nc"
 
     # if the pattern "_restart" appears in base_name, remove it from paths
     if "_restart" in base_name:
@@ -69,8 +69,8 @@ def main():
     
     # Open NetCDF files with xarray
     try:
-        ds_output = xr.open_mfdataset(output_file)
-        ds_reference = xr.open_mfdataset(reference_file)
+        ds_output = xr.open_dataset(output_file)
+        ds_reference = xr.open_dataset(reference_file)
     except Exception as e:
         print(f"Error opening NetCDF files: {e}")
         return 1

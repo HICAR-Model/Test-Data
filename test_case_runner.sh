@@ -244,7 +244,7 @@ for nml_file in *.nml; do
 					# Check if srun is available
 					if command -v srun &> /dev/null; then
 						echo -e "${GREEN}Using srun to run HICAR${NC}"
-						srun $SRUN_FLAGS $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+						srun -N 1 -n $np $SRUN_FLAGS $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
 						hicar_pid=$!
 					else
 						echo -e "${RED}srun not found.${NC}"
@@ -333,16 +333,16 @@ for nml_file in *.nml; do
 						fi
 					fi
 					# check if python has xarray, numpy, and netcdf4 installed
-					if ! $python_exe -c "import xarray, numpy, netCDF4, dask" &> /dev/null; then
+					if ! $python_exe -c "import xarray, numpy, netCDF4" &> /dev/null; then
 						PY_ENV_PATH=$(pwd)/venv
 						echo
-						echo -e "Python packages xarray, numpy, netCDF4, and dask are not installed"
+						echo -e "Python packages xarray, numpy, and netCDF4 are not installed"
 						echo -e "Creating a virtual environment and installing them to:"
 						echo -e "    ${BLUE}${PY_ENV_PATH}${NC}"
 						echo "-------------------------------------------------------"
 						mkdir -p $PY_ENV_PATH
 						$python_exe -m venv ${PY_ENV_PATH}
-						${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray dask
+						${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray
 	                    export PYTHONPATH=${PY_ENV_PATH}:$ENV{PYTHONPATH} 
 						# Get the path to the python executable in the virtual environment
 						python_exe=${PY_ENV_PATH}/bin/python
