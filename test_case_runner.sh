@@ -9,6 +9,20 @@ NC='\033[0m' # No Color
 #Get location of HICAR repo
 hicar_repo=$(readlink -f $1)
 
+#get the location of a HICAR executable, should be in the bin directory
+if [ ! -f $hicar_repo/bin/HICAR ]; then
+	#check if rather HICAR_debug is in the bin directory
+	if [ -f $hicar_repo/bin/HICAR_debug ]; then
+		hicar_exe=$hicar_repo/bin/HICAR_debug
+	else
+		echo -e "${RED}HICAR executable not found in bin directory. Please check the path to the HICAR repo${NC}"
+		echo -e "${RED}and ensure that 'make install' was run from the build directory.${NC}"
+		exit 1
+	fi
+else
+	hicar_exe=$hicar_repo/bin/HICAR
+fi
+
 #Second argument is a comma separated list of the test cases to run
 #If a list is provided, check each test case to see if it contains
 # "_restart" anywhere in the name. If it does, obtain the rest of 
@@ -80,7 +94,7 @@ if [ -f $default_file ]; then
 fi
 
 echo 'Generating default namelist to ./input'
-$hicar_repo/bin/HICAR --gen-nml $default_file
+$hicar_exe --gen-nml $default_file
 
 #Generate test case namelist files based on the namelist generation files in input/nml_gen_scripts
 cd input
@@ -237,14 +251,14 @@ for nml_file in *.nml; do
 				if [ ! -z "$mpiexec_path" ]; then
 					echo -e "${GREEN}Using mpiexec to run HICAR${NC}"
 					# Start HICAR with output redirected to files
-					$mpiexec_path -np $np $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+					$mpiexec_path -np $np $hicar_exe $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
 					hicar_pid=$!
 
 				else
 					# Check if srun is available
 					if command -v srun &> /dev/null; then
 						echo -e "${GREEN}Using srun to run HICAR${NC}"
-						srun -N 1 -n $np $SRUN_FLAGS $hicar_repo/bin/HICAR $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+						srun -N 1 -n $np $SRUN_FLAGS $hicar_exe $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
 						hicar_pid=$!
 					else
 						echo -e "${RED}srun not found.${NC}"
