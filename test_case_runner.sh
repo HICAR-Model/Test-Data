@@ -216,7 +216,12 @@ fi
 echo
 echo -e "${GREEN}Using ${np} processors for test cases${NC}"
 echo "-------------------------------------------------------"
-for nml_file in *.nml; do
+IFS=',' read -ra script_list <<< "$2"
+for item in "${script_list[@]}"; do
+	# Trim any whitespace
+	item=$(echo "$item" | xargs)
+	# append ".nml" to the end of the item
+	nml_file="${item}.nml"
 	# Check if the file is a regular file
 	if [ -f "$nml_file" ]; then
 		# Skip the default_hicar_options.nml file
@@ -224,156 +229,139 @@ for nml_file in *.nml; do
 			base_name=$(basename "$nml_file")
 			base_name_no_ext="${base_name%.nml}"
 
-			if [ $# -gt 1 ]; then
-				script_found=false
-				# Split the comma-separated list into an array
-				IFS=',' read -ra script_list <<< "$2"
-				for item in "${script_list[@]}"; do
-				# Trim any whitespace
-				item=$(echo "$item" | xargs)
-				if [ "$item" == "$base_name_no_ext" ]; then
-					script_found=true
-					break
-				fi
-				done
-			fi
-
-			if [[ $# -eq 1 ]] || [ $script_found == true ]; then
-
-				# Run the HICAR executable with the current .nml file
-				echo
-				echo
-				echo -e "Running test case: ${BLUE}$base_name_no_ext${NC}"
-				echo -e "Output will be written to ${BLUE}$base_name_no_ext.out${NC} and ${BLUE}$base_name_no_ext.err${NC}"
+			# Run the HICAR executable with the current .nml file
+			echo
+			echo
+			echo -e "Running test case: ${BLUE}$base_name_no_ext${NC}"
+			echo -e "Output will be written to ${BLUE}$base_name_no_ext.out${NC} and ${BLUE}$base_name_no_ext.err${NC}"
 
 
-				# check if $mpiexec_path is set
-				if [ ! -z "$mpiexec_path" ]; then
-					echo -e "${GREEN}Using mpiexec to run HICAR${NC}"
-					# Start HICAR with output redirected to files
-					$mpiexec_path -np $np $hicar_exe $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+			# check if $mpiexec_path is set
+			if [ ! -z "$mpiexec_path" ]; then
+				echo -e "${GREEN}Using mpiexec to run HICAR${NC}"
+				# Start HICAR with output redirected to files
+				$mpiexec_path -np $np $hicar_exe $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
+				hicar_pid=$!
+
+			else
+				# Check if srun is available
+				if command -v srun &> /dev/null; then
+					echo -e "${GREEN}Using srun to run HICAR${NC}"
+					srun -N 1 -n $np $SRUN_FLAGS $hicar_exe $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
 					hicar_pid=$!
-
 				else
-					# Check if srun is available
-					if command -v srun &> /dev/null; then
-						echo -e "${GREEN}Using srun to run HICAR${NC}"
-						srun -N 1 -n $np $SRUN_FLAGS $hicar_exe $nml_file 1>$base_name_no_ext.out 2>$base_name_no_ext.err &
-						hicar_pid=$!
-					else
-						echo -e "${RED}srun not found.${NC}"
+					echo -e "${RED}srun not found.${NC}"
+					exit 1
+				fi
+			fi
+			
+			echo
+			echo -n "Initializing..."
+
+			# Monitor the output file for progress
+			last_line_count=0
+			wait_counter=0
+			total_last_lines=0
+			while kill -0 $hicar_pid 2>/dev/null; do
+				sleep 1
+				if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 60 ]; then
+					# Check if the process is still running
+					if kill -0 $hicar_pid 2>/dev/null; then
+						# inform the user that the process is still running,
+						# but not producing output. This is likely a hang
+						echo
+						echo -e "${RED}HICAR is still running, but has not written to stdout in the last minute. This may indicate a hang.${NC}"
+						# kill the process
+						kill -9 $hicar_pid
 						exit 1
 					fi
 				fi
-				
-				echo
-				echo -n "Initializing..."
-
-				# Monitor the output file for progress
-				last_line_count=0
-				wait_counter=0
-				total_last_lines=0
-				while kill -0 $hicar_pid 2>/dev/null; do
-					sleep 1
-					if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 60 ]; then
-						# Check if the process is still running
-						if kill -0 $hicar_pid 2>/dev/null; then
-							# inform the user that the process is still running,
-							# but not producing output. This is likely a hang
-							echo
-							echo -e "${RED}HICAR is still running, but has not written to stdout in the last minute. This may indicate a hang.${NC}"
-							# kill the process
-							kill -9 $hicar_pid
-							exit 1
-						fi
+				if [ -f "$base_name_no_ext.out" ]; then
+					total_current_lines=$(wc -l < "$base_name_no_ext.out")
+					if [ $total_current_lines -eq $total_last_lines ]; then
+						wait_counter=$((wait_counter + 1))
+					else
+						wait_counter=0
 					fi
-					if [ -f "$base_name_no_ext.out" ]; then
-						total_current_lines=$(wc -l < "$base_name_no_ext.out")
-						if [ $total_current_lines -eq $total_last_lines ]; then
-							wait_counter=$((wait_counter + 1))
-						else
-							wait_counter=0
+					total_last_lines=$total_current_lines
+					# Get new Model Time lines
+					current_lines=$(grep -a "^ *Model time" "$base_name_no_ext.out" | wc -l)
+					if [ $current_lines -gt $last_line_count ]; then
+						if [ $last_line_count -eq 0 ]; then
+							# Overwrite initializing with "Running..."
+							echo -e "\r\033[KRunning..."
 						fi
-						total_last_lines=$total_current_lines
-						# Get new Model Time lines
-						current_lines=$(grep -a "^ *Model time" "$base_name_no_ext.out" | wc -l)
-						if [ $current_lines -gt $last_line_count ]; then
-							if [ $last_line_count -eq 0 ]; then
-								# Overwrite initializing with "Running..."
-								echo -e "\r\033[KRunning..."
-							fi
-							latest_line=$(grep -a "^ *Model time" "$base_name_no_ext.out" | tail -n 1)
-							end_time=$(grep -a "^ *End  time" "$base_name_no_ext.out" | tail -n 1)
+						latest_line=$(grep -a "^ *Model time" "$base_name_no_ext.out" | tail -n 1)
+						end_time=$(grep -a "^ *End  time" "$base_name_no_ext.out" | tail -n 1)
 
-							echo -e "\r\033[K$latest_line"
-							echo -n "$end_time"
+						echo -e "\r\033[K$latest_line"
+						echo -n "$end_time"
 
-							last_line_count=$current_lines
-						fi
+						last_line_count=$current_lines
 					fi
-				done
-				echo
-				echo
-				
-				# Wait for process to complete and get exit code
-				wait $hicar_pid
-				hicar_status=$?
-				
-				# Check if the process completed successfully
-				if [ $hicar_status -ne 0 ]; then
-					echo -e "${RED}HICAR exited with error code $hicar_status${NC}"
 				fi
-
-				echo -e "Test Case: ${BLUE}$base_name_no_ext${NC} complete"
-				# Check if the .sh file used to generate the .nml file
-				# Ends with the line "CHECK OUTPUT", indicating that
-				# we should call the python script check_output.py
-				# to check the output
-				if grep -q "#CHECK OUTPUT" "nml_gen_scripts/$base_name_no_ext.sh"; then
-					echo
-					echo -e "Checking output for ${BLUE}$base_name_no_ext${NC}"
-
-					# move one layer up to the root directory with the python script
-					cd ..
-					#get the path to the python executable
-					python_exe=$(which python)
-					# check if python is installed
-					if [ -z "$python_exe" ]; then
-						#try python3
-						python_exe=$(which python3)
-						if [ -z "$python_exe" ]; then
-							echo -e "${RED}Python is not installed, but a check is requested for test: ${BLUE}$base_name_no_ext${NC}{RED}. Please install Python.${NC}"
-							exit 1
-						fi
-					fi
-					# check if python has xarray, numpy, and netcdf4 installed
-					if ! $python_exe -c "import xarray, numpy, netCDF4" &> /dev/null; then
-						PY_ENV_PATH=$(pwd)/venv
-						echo
-						echo -e "Python packages xarray, numpy, and netCDF4 are not installed"
-						echo -e "Creating a virtual environment and installing them to:"
-						echo -e "    ${BLUE}${PY_ENV_PATH}${NC}"
-						echo "-------------------------------------------------------"
-						mkdir -p $PY_ENV_PATH
-						$python_exe -m venv ${PY_ENV_PATH}
-						${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray
-	                    export PYTHONPATH=${PY_ENV_PATH}:$ENV{PYTHONPATH} 
-						# Get the path to the python executable in the virtual environment
-						python_exe=${PY_ENV_PATH}/bin/python
-						echo "-------------------------------------------------------"
-						echo
-					fi
-					PATH_tmp=${PATH}
-					export PATH=${PY_ENV_PATH}/bin:$ENV{PATH} 
-					$python_exe check_output.py $base_name_no_ext
-					export PATH=$PATH_tmp
-
-					check_result=$?
-
-					cd input
-				fi
-				echo "-------------------------------------------------------"
+			done
+			echo
+			echo
+			
+			# Wait for process to complete and get exit code
+			wait $hicar_pid
+			hicar_status=$?
+			
+			# Check if the process completed successfully
+			if [ $hicar_status -ne 0 ]; then
+				echo -e "${RED}HICAR exited with error code $hicar_status${NC}"
 			fi
+
+			echo -e "Test Case: ${BLUE}$base_name_no_ext${NC} complete"
+			# Check if the .sh file used to generate the .nml file
+			# Ends with the line "CHECK OUTPUT", indicating that
+			# we should call the python script check_output.py
+			# to check the output
+			if grep -q "#CHECK OUTPUT" "nml_gen_scripts/$base_name_no_ext.sh"; then
+				echo
+				echo -e "Checking output for ${BLUE}$base_name_no_ext${NC}"
+
+				# move one layer up to the root directory with the python script
+				cd ..
+				#get the path to the python executable
+				python_exe=$(which python)
+				# check if python is installed
+				if [ -z "$python_exe" ]; then
+					#try python3
+					python_exe=$(which python3)
+					if [ -z "$python_exe" ]; then
+						echo -e "${RED}Python is not installed, but a check is requested for test: ${BLUE}$base_name_no_ext${NC}{RED}. Please install Python.${NC}"
+						exit 1
+					fi
+				fi
+				# check if python has xarray, numpy, and netcdf4 installed
+				if ! $python_exe -c "import xarray, numpy, netCDF4" &> /dev/null; then
+					PY_ENV_PATH=$(pwd)/venv
+					echo
+					echo -e "Python packages xarray, numpy, and netCDF4 are not installed"
+					echo -e "Creating a virtual environment and installing them to:"
+					echo -e "    ${BLUE}${PY_ENV_PATH}${NC}"
+					echo "-------------------------------------------------------"
+					mkdir -p $PY_ENV_PATH
+					$python_exe -m venv ${PY_ENV_PATH}
+					${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray
+					export PYTHONPATH=${PY_ENV_PATH}:$ENV{PYTHONPATH} 
+					# Get the path to the python executable in the virtual environment
+					python_exe=${PY_ENV_PATH}/bin/python
+					echo "-------------------------------------------------------"
+					echo
+				fi
+				PATH_tmp=${PATH}
+				export PATH=${PY_ENV_PATH}/bin:$ENV{PATH} 
+				$python_exe check_output.py $base_name_no_ext
+				export PATH=$PATH_tmp
+
+				check_result=$?
+
+				cd input
+			fi
+			echo "-------------------------------------------------------"
 		fi
 	fi
 done
