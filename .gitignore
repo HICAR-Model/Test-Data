@@ -1,8 +1,11 @@
+*.DS_Store
 *.nml
 *.out
 *.err
 input/*_support
 *.TBL
+*.mat
+*.png
 input/*file*.txt
 output/*/*.nc
 restart/*

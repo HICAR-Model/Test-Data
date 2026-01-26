@@ -13,15 +13,15 @@ sed -i'.bak' "s/nests = 1/nests = 2/g" $out_file
 sed -i'.bak' "s/parent_nest = 0/parent_nest = 0,1/g" $out_file
 sed -i'.bak' 's/dx = 0.0/dx = 250.0, 150.0/g' $out_file
 sed -i'.bak' 's/nz = 500/nz = 40/g' $out_file
-sed -i'.bak' 's/ pbl = 0/ pbl = 1/g' $out_file
-sed -i'.bak' 's/ lsm = 0/ lsm = 3/g' $out_file
-sed -i'.bak' 's/ sfc = 0/ sfc = 1/g' $out_file
-sed -i'.bak' 's/ water = 0/ water = 1/g' $out_file
-sed -i'.bak' 's/ mp = 0/ mp = 3/g' $out_file
-sed -i'.bak' 's/ rad = 0/ rad = 3/g' $out_file
-sed -i'.bak' 's/ adv = 0/ adv = 1/g' $out_file
-sed -i'.bak' 's/ wind = 0/ wind = 3/g' $out_file
-sed -i'.bak' 's/radiation_downscaling = 0/radiation_downscaling = 1/g' $out_file
+sed -i'.bak' 's/ pbl = 'none'/ pbl = 'ysu'/g' $out_file
+sed -i'.bak' 's/ lsm = 'none'/ lsm = 'noahmp'/g' $out_file
+sed -i'.bak' 's/ sfc = 'none'/ sfc = 'revmm5'/g' $out_file
+sed -i'.bak' 's/ water = 'none'/ water = 'simple'/g' $out_file
+sed -i'.bak' 's/ mp = 'none'/ mp = 'morrison'/g' $out_file
+sed -i'.bak' 's/ rad = 'none'/ rad = 'rrtmg'/g' $out_file
+sed -i'.bak' 's/ adv = 'none'/ adv = 'standard'/g' $out_file
+sed -i'.bak' 's/ wind = 'none'/ wind = 'variational solver'/g' $out_file
+sed -i'.bak' 's/terrain_shading = .False./terrain_shading = .True./g' $out_file
 sed -i'.bak' 's/Sx = .False./Sx = .True./g' $out_file
 sed -i'.bak' "s/output_vars = ''/output_vars = 'qv','temperature','precipitation','lat','lon','swtb','swtd','hfls','hfss','lwtr','pressure','u','v','w'/g" $out_file
 sed -i'.bak' 's/inputinterval = 3600/inputinterval = 3600/g' $out_file
