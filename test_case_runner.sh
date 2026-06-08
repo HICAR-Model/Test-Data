@@ -97,7 +97,7 @@ echo 'Generating default namelist to ./input'
 $hicar_exe --gen-nml $default_file
 
 #Generate test case namelist files based on the namelist generation files in input/nml_gen_scripts
-cd input
+cd $hicar_repo/tests/Test_Cases/input
 
 #Get just the file name of the default namelist
 default_file=$(basename "$default_file")
@@ -314,55 +314,16 @@ for item in "${script_list[@]}"; do
 			fi
 
 			echo -e "Test Case: ${BLUE}$base_name_no_ext${NC} complete"
-			# Check if the .sh file used to generate the .nml file
-			# Ends with the line "CHECK OUTPUT", indicating that
-			# we should call the python script check_output.py
-			# to check the output
-			if grep -q "#CHECK OUTPUT" "nml_gen_scripts/$base_name_no_ext.sh"; then
-				echo
-				echo -e "Checking output for ${BLUE}$base_name_no_ext${NC}"
-
-				# move one layer up to the root directory with the python script
-				cd ..
-				#get the path to the python executable
-				python_exe=$(which python)
-				# check if python is installed
-				if [ -z "$python_exe" ]; then
-					#try python3
-					python_exe=$(which python3)
-					if [ -z "$python_exe" ]; then
-						echo -e "${RED}Python is not installed, but a check is requested for test: ${BLUE}$base_name_no_ext${NC}{RED}. Please install Python.${NC}"
-						exit 1
-					fi
-				fi
-				# check if python has xarray, numpy, and netcdf4 installed
-				if ! $python_exe -c "import xarray, numpy, netCDF4" &> /dev/null; then
-					PY_ENV_PATH=$(pwd)/venv
-					echo
-					echo -e "Python packages xarray, numpy, and netCDF4 are not installed"
-					echo -e "Creating a virtual environment and installing them to:"
-					echo -e "    ${BLUE}${PY_ENV_PATH}${NC}"
-					echo "-------------------------------------------------------"
-					mkdir -p $PY_ENV_PATH
-					$python_exe -m venv ${PY_ENV_PATH}
-					${PY_ENV_PATH}/bin/pip install numpy netCDF4 xarray
-					export PYTHONPATH=${PY_ENV_PATH}:$ENV{PYTHONPATH} 
-					# Get the path to the python executable in the virtual environment
-					python_exe=${PY_ENV_PATH}/bin/python
-					echo "-------------------------------------------------------"
-					echo
-				fi
-				PATH_tmp=${PATH}
-				export PATH=${PY_ENV_PATH}/bin:$ENV{PATH} 
-				$python_exe check_output.py $base_name_no_ext
-				export PATH=$PATH_tmp
-
-				check_result=$?
-
-				cd input
-			fi
+			# NOTE: output verification is intentionally NOT done here. This runner
+			# only RUNS integration cases (it verifies they complete without error).
+			# Comparing the produced output against the blessed reference is a
+			# separate step: tests/test_regression.sh recompiles the blessed commit
+			# (tests/regression_commit.txt), regenerates the reference output, and
+			# diffs it against these integration outputs with tests/compare_outputs.py.
 			echo "-------------------------------------------------------"
 		fi
+	else
+		echo -e "${RED}File $nml_file not found. Skipping test case ${BLUE}$item${NC}${RED}.${NC}"
 	fi
 done
 
