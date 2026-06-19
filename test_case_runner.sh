@@ -58,7 +58,7 @@ if [ $# -gt 1 ]; then
 				# Remove any leading or trailing spaces
 				script_list_string=$(echo "$script_list_string" | xargs)
 				# Pass the new list to the script
-				set -- "$1" "$script_list_string"
+				set -- "${hicar_repo}" "${script_list_string}"
 				# Rebuild the script list
 				IFS=',' read -ra script_list <<< "$2"
 			fi
@@ -67,33 +67,33 @@ if [ $# -gt 1 ]; then
 fi
 
 #First, make forcing file list
-if [ ! -f ./input/file_list_TestCase.txt ]; then
-	/$1/helpers/filelist_script.sh "forcing/*" input/file_list_TestCase.txt
+if [ ! -f $hicar_repo/tests/Test_Cases/input/file_list_TestCase.txt ]; then
+	/${hicar_repo}/helpers/filelist_script.sh "${hicar_repo}/tests/Test_Cases/forcing/*" ${hicar_repo}/tests/Test_Cases/input/file_list_TestCase.txt
 fi
 
 #Now copy the necesarry supporting files to the input directory
-if [ ! -f ./input/VEGPARM.TBL ]; then
+if [ ! -f $hicar_repo/tests/Test_Cases/input/VEGPARM.TBL ]; then
 	echo 'Copying .TBL files needed by NoahMP, which are found in'
 	echo $hicar_repo/run
-	echo 'to ./input'
+	echo 'to ${hicar_repo}/tests/Test_Cases/input'
 
-	cp $hicar_repo/run/*.TBL ./input/
+	cp $hicar_repo/run/*.TBL $hicar_repo/tests/Test_Cases/input/
 fi
 # test for existence of the rrtmg_support and mp_support directories
-if [ ! -d ./input/rrtmg_support ]; then
-	cp -r $hicar_repo/run/rrtmg_support ./input
+if [ ! -d $hicar_repo/tests/Test_Cases/input/rrtmg_support ]; then
+	cp -r $hicar_repo/run/rrtmg_support $hicar_repo/tests/Test_Cases/input/
 fi
-if [ ! -d ./input/mp_support ]; then
-	cp -r $hicar_repo/run/mp_support ./input
+if [ ! -d $hicar_repo/tests/Test_Cases/input/mp_support ]; then
+	cp -r $hicar_repo/run/mp_support $hicar_repo/tests/Test_Cases/input/
 fi
 
 #Generate default namelist 
-default_file=input/default_hicar_options.nml
+default_file=$hicar_repo/tests/Test_Cases/input/default_hicar_options.nml
 if [ -f $default_file ]; then
 	rm $default_file
 fi
 
-echo 'Generating default namelist to ./input'
+echo 'Generating default namelist to $hicar_repo/tests/Test_Cases/input'
 $hicar_exe --gen-nml $default_file
 
 #Generate test case namelist files based on the namelist generation files in input/nml_gen_scripts
