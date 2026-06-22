@@ -264,13 +264,13 @@ for item in "${script_list[@]}"; do
 			total_last_lines=0
 			while kill -0 $hicar_pid 2>/dev/null; do
 				sleep 1
-				if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 60 ]; then
+				if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 300 ]; then
 					# Check if the process is still running
 					if kill -0 $hicar_pid 2>/dev/null; then
 						# inform the user that the process is still running,
 						# but not producing output. This is likely a hang
 						echo
-						echo -e "${RED}HICAR is still running, but has not written to stdout in the last minute. This may indicate a hang.${NC}"
+						echo -e "${RED}HICAR is still running, but has not written to stdout in the last 5 minutes. This may indicate a hang.${NC}"
 						# kill the process
 						kill -9 $hicar_pid
 						exit 1
