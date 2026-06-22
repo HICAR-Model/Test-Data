@@ -218,6 +218,12 @@ fi
 echo
 echo -e "${GREEN}Using ${np} processors for test cases${NC}"
 echo "-------------------------------------------------------"
+
+# Track whether any case failed so the script's exit code reflects it. Previously
+# a non-zero HICAR exit only printed a red message but the script still exited 0,
+# so CI showed a green check for a crashed run.
+overall_status=0
+
 IFS=',' read -ra script_list <<< "$2"
 for item in "${script_list[@]}"; do
 	# Trim any whitespace
@@ -264,19 +270,32 @@ for item in "${script_list[@]}"; do
 			last_line_count=0
 			wait_counter=0
 			total_last_lines=0
+			# Hard wall-clock cap for a single case. The old heuristic killed the
+			# run after 5 minutes with no NEW stdout, which false-positives on slow
+			# CI runners during long (but progressing) init / radiation steps -- the
+			# "passes locally, fails in CI" symptom. Cap total runtime instead;
+			# override with HICAR_TEST_MAX_RUNTIME (seconds, default 1800 = 30 min).
+			run_start=$SECONDS
+			max_runtime=${HICAR_TEST_MAX_RUNTIME:-1800}
+			stall_warned=0
 			while kill -0 $hicar_pid 2>/dev/null; do
 				sleep 1
-				if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 300 ]; then
-					# Check if the process is still running
+				# Fatal: exceeded the wall-clock budget for this case.
+				if [ $((SECONDS - run_start)) -gt $max_runtime ]; then
 					if kill -0 $hicar_pid 2>/dev/null; then
-						# inform the user that the process is still running,
-						# but not producing output. This is likely a hang
 						echo
-						echo -e "${RED}HICAR is still running, but has not written to stdout in the last 5 minutes. This may indicate a hang.${NC}"
-						# kill the process
+						echo -e "${RED}HICAR exceeded the ${max_runtime}s wall-clock limit for this case. Killing it.${NC}"
 						kill -9 $hicar_pid
-						exit 1
+						overall_status=1
+						break
 					fi
+				fi
+				# A long stdout stall is suspicious but NOT fatal on slow runners --
+				# warn once and keep waiting up to the wall-clock cap above.
+				if [ ! -z "$mpiexec_path" ] && [ $wait_counter -gt 300 ] && [ $stall_warned -eq 0 ]; then
+					echo
+					echo -e "${RED}HICAR has not written to stdout in 5 minutes -- still within the ${max_runtime}s limit, continuing to wait.${NC}"
+					stall_warned=1
 				fi
 				if [ -f "$base_name_no_ext.out" ]; then
 					total_current_lines=$(wc -l < "$base_name_no_ext.out")
@@ -313,6 +332,7 @@ for item in "${script_list[@]}"; do
 			# Check if the process completed successfully
 			if [ $hicar_status -ne 0 ]; then
 				echo -e "${RED}HICAR exited with error code $hicar_status${NC}"
+				overall_status=1
 			fi
 
 			echo -e "Test Case: ${BLUE}$base_name_no_ext${NC} complete"
@@ -330,3 +350,5 @@ for item in "${script_list[@]}"; do
 done
 
 echo "Finished running test cases"
+
+exit $overall_status
