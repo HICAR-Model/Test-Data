@@ -161,12 +161,14 @@ done
 # with each of them
 # detect if this is running on mac OS
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	export np=$(sysctl -n hw.logicalcpu)
+	export sys_np=$(sysctl -n hw.logicalcpu)
 else
-	export np=$(nproc --all)
+	export sys_np=$(nproc --all)
 fi
-
-np=$((np/2))
+ 
+# Use half of the available processors if we have a lot, otherwise use all
+np=$(( sys_np/2 ))
+np=$(( sys_np>8 ? np : sys_np ))
 np=$((np>2?np:2))
 np=$((np<21?np:21))
 export OMP_NUM_THREADS=1
