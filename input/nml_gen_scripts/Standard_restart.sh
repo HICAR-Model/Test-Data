@@ -16,7 +16,7 @@ cp "$examples/alpine_realdata.nml" "$out_file"
 set_var start_date "'2017-02-14 00:00:00'" general
 set_var end_date   "'2017-02-14 00:20:00'" general
 
-set_var outputinterval  600 output
+set_var outputinterval  300 output
 set_var restartinterval 1   restart
 
 # Same I/O folders as Standard — restart reads Standard's checkpoint

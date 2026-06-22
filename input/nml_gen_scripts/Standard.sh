@@ -22,7 +22,7 @@ set_var start_date "'2017-02-14 00:00:00'" general
 set_var end_date   "'2017-02-14 00:20:00'" general
 
 # Output every 10 min; write a restart checkpoint at every output
-set_var outputinterval  600 output
+set_var outputinterval  300 output
 set_var restartinterval 1   restart
 
 # Per-case I/O folders so cases don't collide and the harness finds the output
