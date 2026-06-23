@@ -41,6 +41,8 @@ set_var init_conditions_file "'../domains/Gaudergrat_250m_snowpack.nc'" domain
 # Turn on the SNOWPACK snow model
 set_var sm "'snowpack'" physics
 
+set_var sm_nsnow_max 20 sm_parameters
+
 # Keep the prescribed 14-layer mesh (disable aggressive layer reduction in both
 # the C++ build and the Fortran port so the comparison is of the physics)
 set_var snowpack_reduce_n_elements 0 sm_parameters
